@@ -1,3 +1,6 @@
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -8,6 +11,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 
 class LinkTuner extends JFrame {
 
@@ -25,11 +29,33 @@ class LinkTuner extends JFrame {
 
     private ActionListener actionListener = e -> {
         Parser parser = new Parser(link.getText());
-        System.out.println(parser.getPrice());
+        Thread notificator = new Thread(() -> {
+            int notificationTimes = (int) notificationsCyclesTime.getSelectedItem();
+            while(true) {
+                Notifications.showInfoNotification(getTitleFromPage(), parser.getPrice(), this);
+                try {
+                    Thread.sleep(36_000_000 * notificationTimes);
+                } catch (InterruptedException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+        notificator.start();
     };
 
     LinkTuner() {
         initFrame();
+    }
+
+    private String getTitleFromPage() {
+        String title = "";
+        try {
+            Document doc = Jsoup.connect(link.getText()).get();
+            title = doc.title();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return title;
     }
 
     private void checkSiteValidate(String link) {

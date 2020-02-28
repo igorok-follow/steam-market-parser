@@ -1,12 +1,10 @@
 import java.io.*;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
 
 class Parser {
-
-    public static void main(String[] args) {
-        new Parser(userLink);
-    }
 
     private final String link;
     private String requestLink =
@@ -50,7 +48,7 @@ class Parser {
 
     private String toString(InputStream inputStream) throws IOException
     {
-        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8")))
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)))
         {
             String inputLine;
             StringBuilder stringBuilder = new StringBuilder();
