@@ -16,8 +16,7 @@ public class JsonReader {
         JSONObject jsonObject = null;
         try {
             Scanner scanner = new Scanner(file);
-            String checker = scanner.nextLine();
-            if (checker != null) {
+            if (scanner.nextLine() != null) {
                 JSONParser jsonParser = new JSONParser();
                 try {
                     jsonObject = (JSONObject) jsonParser.parse(new FileReader(file));
