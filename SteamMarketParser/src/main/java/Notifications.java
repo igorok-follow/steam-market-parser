@@ -1,15 +1,18 @@
 import java.awt.*;
+import java.util.Objects;
 
-public class Notifications {
+class Notifications {
 
     private static void showNotification(String caption, String text, LinkTuner linkTuner) {
         if (SystemTray.isSupported()) {
             SystemTray tray = SystemTray.getSystemTray();
-            Image image = Toolkit.getDefaultToolkit().createImage("notification.png");
+            ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+            Image image = Toolkit.getDefaultToolkit().
+                    createImage(Objects.requireNonNull(classLoader.getResource("trayIcon.png")).getFile());
             TrayIcon trayIcon = new TrayIcon(image, "Tray Demo");
             trayIcon.addActionListener(e -> linkTuner.setVisible(true));
             trayIcon.setImageAutoSize(true);
-            trayIcon.setToolTip("System tray icon demo");
+            trayIcon.setToolTip("SMP Notification (do double click)");
             try {
                 tray.add(trayIcon);
             } catch (AWTException e) {
@@ -19,7 +22,7 @@ public class Notifications {
         }
     }
 
-    public static void showInfoNotification(String caption, String text, LinkTuner linkTuner) {
+    static void showInfoNotification(String caption, String text, LinkTuner linkTuner) {
         showNotification(caption, text, linkTuner);
     }
 

@@ -6,11 +6,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Objects;
 import java.util.Scanner;
 
-public class JsonReader {
+class JsonReader {
 
-    private File file = new File("prices.json");
+    private ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+    private File file = new File(Objects.requireNonNull(classLoader.getResource("prices.json")).getFile());
 
     String getPrice() {
         JSONObject jsonObject = null;
@@ -23,8 +25,6 @@ public class JsonReader {
                 } catch (IOException | ParseException e) {
                     e.printStackTrace();
                 }
-            } else {
-                System.out.println("Json file is empty");
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();

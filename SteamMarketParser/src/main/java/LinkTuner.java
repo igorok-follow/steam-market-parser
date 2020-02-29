@@ -1,17 +1,25 @@
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-import javax.swing.*;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.WindowConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import java.awt.*;
+import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 
 class LinkTuner extends JFrame {
 
@@ -35,14 +43,25 @@ class LinkTuner extends JFrame {
     private JTextField link = new JTextField();
     private JComboBox<Integer> notificationsCyclesTime;
     private ArrayList<Integer> hours = new ArrayList<>(Arrays.asList(1, 2, 3, 12, 24));
+    private JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
 
     private Font font14 = new Font("", Font.PLAIN, 14);
 
     private ActionListener actionListener = e -> {
         setSize(526, 300);
+        if (itemTitle.contains("Steam Community Market :: Listings for ")) {
+            itemTitle = itemTitle.replace("Steam Community Market :: Listings for ", "");
+        } else if (itemTitle.contains("Торговая площадка сообщества Steam :: Лоты Boston 2018 ")) {
+            itemTitle = itemTitle.replace("Торговая площадка сообщества Steam :: Лоты Boston 2018 ", "");
+        }
         parsingItemName.setText(itemTitle);
         repaint();
-        Parser parser = new Parser(link.getText());
+        Parser parser;
+        if (link.getText().contains("?l=")) {
+            parser = new Parser(link.getText().split("\\?l=", 2)[0]);
+        } else {
+            parser = new Parser(link.getText());
+        }
         Thread notificator = new Thread(() -> {
             int notificationTimes = (int) notificationsCyclesTime.getSelectedItem();
             while(true) {
@@ -74,9 +93,8 @@ class LinkTuner extends JFrame {
     }
 
     private void checkSiteValidate(String link) {
-        if (link != null) {
+        if (!link.equals("") && link.contains("https://")) {
             try {
-                System.out.println("CHECK");
                 URL url = new URL(link);
                 HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
@@ -97,6 +115,10 @@ class LinkTuner extends JFrame {
                 e.printStackTrace();
             }
             getTitleFromPage();
+        } else {
+            siteValidation.setText(validationExample + "false");
+            acceptBtn.setEnabled(false);
+            repaint();
         }
     }
 
@@ -122,7 +144,7 @@ class LinkTuner extends JFrame {
         contentPanel.add(link);
 
         acceptBtn.setBounds(241, 60, 265, 30);
-//        acceptBtn.setEnabled(false);
+        acceptBtn.setEnabled(false);
         contentPanel.add(acceptBtn);
 
         exit.setBounds(5, 130, 501, 25);
@@ -152,13 +174,16 @@ class LinkTuner extends JFrame {
         parsingItemPriceTitle.setFont(font14);
         parsePanel.add(parsingItemPriceTitle);
 
-        parsingItemName.setBounds(110, 35, 390, 20);
+        parsingItemName.setBounds(110, 35, 390, 25);
         parsingItemName.setFont(font14);
         parsePanel.add(parsingItemName);
 
-        parsingItemPrice.setBounds(155, 65, 345, 20);
+        parsingItemPrice.setBounds(155, 65, 345, 25);
         parsingItemPrice.setFont(font14);
         parsePanel.add(parsingItemPrice);
+
+        separator.setBounds(5, 157, 500, 3);
+        contentPanel.add(separator);
     }
 
     private void setListeners() {
@@ -181,7 +206,7 @@ class LinkTuner extends JFrame {
     private void tuneFrame() {
         setDefaultCloseOperation(WindowConstants.HIDE_ON_CLOSE);
         setSize(526, 200);
-        setResizable(false);
+        setResizable(true);
         setTitle("Steam market parser");
         setVisible(true);
     }

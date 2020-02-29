@@ -1,28 +1,26 @@
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.Objects;
 
 class Parser {
 
-    private final String link;
-    private String requestLink =
-            "https://steamcommunity.com/market/priceoverview/?currency=3&appid=730&market_hash_name=";
-    private static String userLink =
-            "https://steamcommunity.com/market/listings/730/StatTrak%E2%84%A2%20P250%20%7C%20Steel%20Disruption%20%28Factory%20New%29";
-
-    double eurCourse;
+    private double eurCourse;
 
     Parser(String link) {
-        this.link = link;
+        String requestLink = "https://steamcommunity.com/market/priceoverview/?currency=3&appid=730&market_hash_name=";
         writeJson(requestLink + splitLink(link));
         parseCourse();
     }
@@ -43,20 +41,24 @@ class Parser {
             Document document = Jsoup.connect(
                     "http://cbr.ru/currency_base/daily/?date_req=" + day + "." + month + "." + year).get();
             Elements tds = document.getElementsByTag("td");
-            eurCourse = Double.parseDouble(tds.get(59).text());
+            String course = tds.get(59).text().replace(",", ".");
+            eurCourse = Double.parseDouble(course);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     String getPrice() {
-        int price = Integer.parseInt(new JsonReader().getPrice().split(" ", 2)[0]);
+        String priceInEur = new JsonReader().getPrice().replace("€", "");
+        priceInEur = priceInEur.replace(",", ".");
+        double price = Double.parseDouble(priceInEur);
         return String.valueOf(price * eurCourse);
     }
 
     private void writeJson(String fileFill) {
         try {
-            FileWriter fileWriter = new FileWriter("prices.json");
+            ClassLoader classLoader = ClassLoader.getSystemClassLoader();
+            FileWriter fileWriter = new FileWriter(Objects.requireNonNull(classLoader.getResource("prices.json")).getFile());
             fileWriter.write(getURLSource(fileFill));
             fileWriter.flush();
             fileWriter.close();
@@ -69,9 +71,7 @@ class Parser {
         return link.split("/", 7)[6];
     }
 
-    public String getURLSource(String url) throws IOException
-    {
-
+    private String getURLSource(String url) throws IOException {
         URL urlObject = new URL(url);
         URLConnection urlConnection = urlObject.openConnection();
         urlConnection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
@@ -79,8 +79,7 @@ class Parser {
         return toString(urlConnection.getInputStream());
     }
 
-    private String toString(InputStream inputStream) throws IOException
-    {
+    private String toString(InputStream inputStream) throws IOException {
         try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8)))
         {
             String inputLine;
